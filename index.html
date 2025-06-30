@@ -1,0 +1,559 @@
+<!-- Full HTML code with logos between DeFi and Defender -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tanssi & Wirex - DeFi Defender</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Roboto Mono', monospace;
+      background-color: #0d0c22;
+      background-image:
+        radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%),
+        radial-gradient(at 97% 21%, hsla(125, 98%, 72%, 0.1) 0px, transparent 50%);
+    }
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+    #gameCanvas {
+      background-color: #1e293b;
+      cursor: pointer;
+    }
+    .tower-card {
+      border: 2px solid #4a5568;
+      background: rgba(15, 23, 42, 0.5);
+      transition: all 0.2s ease-in-out;
+    }
+    .tower-card.selected,
+    .tower-card:hover {
+      border-color: #e4007a;
+      transform: translateY(-5px);
+      box-shadow: 0 0 15px rgba(228, 0, 122, 0.5);
+    }
+    .tower-card.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: linear-gradient(45deg, #06b6d4, #22d3ee);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(6, 182, 212, 0.4);
+    }
+    .text-glow-pink {
+      text-shadow: 0 0 8px #e4007a, 0 0 10px #e4007a;
+    }
+    .modal {
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+  </style>
+</head>
+<body class="text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+  <div id="game-container" class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+    
+    <!-- Left Panel: Game Canvas -->
+    <div class="w-full lg:w-3/4">
+      <canvas id="gameCanvas" width="800" height="600" class="w-full rounded-lg shadow-2xl border-2 border-slate-700"></canvas>
+    </div>
+
+    <!-- Right Panel: Info & Controls -->
+    <div class="w-full lg:w-1/4 flex flex-col gap-4">
+      <div class="text-center flex flex-col items-center gap-2">
+        <h1 class="font-orbitron text-3xl font-bold uppercase text-glow-pink">DeFi</h1>
+        <!-- Logo Section -->
+        <div class="flex items-center justify-center gap-4">
+          <img src="images/Tanssi Logo & Icon _Mesa de trabajo 1 copia 7.png" alt="Tanssi Logo" class="w-12 h-12">
+          <span class="text-xl font-bold text-white">X</span>
+          <img src="images/wirexxx.png" alt="Wirex Logo" class="w-12 h-12">
+        </div>
+        <h2 class="font-orbitron text-3xl font-bold uppercase text-cyan-400">Defender</h2>
+      </div>
+
+      <!-- Vault Health -->
+      <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-center">
+        <p class="font-orbitron text-sm text-slate-400">VAULT HEALTH</p>
+        <p id="vaultHealth" class="text-3xl font-bold text-green-400">100</p>
+        <div class="w-full bg-slate-700 rounded-full h-2.5 mt-1">
+          <div id="vaultHealthBar" class="bg-green-500 h-2.5 rounded-full" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- Credits & Wave -->
+      <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-center">
+        <p class="font-orbitron text-sm text-slate-400">W-CREDITS</p>
+        <p id="credits" class="text-3xl font-bold text-yellow-300">100</p>
+        <p class="font-orbitron text-sm text-slate-400 mt-2">WAVE</p>
+        <p id="wave" class="text-3xl font-bold text-red-400">0</p>
+      </div>
+
+      <!-- Tower Selection -->
+      <div id="tower-selection" class="flex flex-col gap-3">
+        <div id="tower-1" class="tower-card p-3 rounded-lg cursor-pointer flex items-center gap-4">
+          <div class="w-12 h-12 bg-slate-700 rounded flex items-center justify-center overflow-hidden">
+            <img src="images/Tanssi Logo & Icon _Mesa de trabajo 1 copia 7.png" alt="Staking Pool Tower" class="w-full h-full object-cover">
+          </div>
+          <div>
+            <p class="font-bold">Staking Pool</p>
+            <p class="text-sm text-slate-400">Cost: <span class="font-bold text-yellow-400">50</span></p>
+          </div>
+        </div>
+        <div id="tower-2" class="tower-card p-3 rounded-lg cursor-pointer flex items-center gap-4">
+          <div class="w-12 h-12 bg-slate-700 rounded flex items-center justify-center overflow-hidden">
+            <img src="images/wirexxx.png" alt="Lending Protocol Tower" class="w-full h-full object-cover">
+          </div>
+          <div>
+            <p class="font-bold">Lending Protocol</p>
+            <p class="text-sm text-slate-400">Cost: <span class="font-bold text-yellow-400">75</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Wave Button -->
+      <button id="startWaveBtn" class="btn-primary w-full text-white font-bold text-lg py-3 rounded-full shadow-lg uppercase tracking-wider">
+        Start Wave
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Game Over/Victory -->
+  <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center opacity-0 invisible">
+    <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl text-center border-2 border-pink-500 max-w-md w-full mx-4">
+      <h2 id="modal-title" class="font-orbitron text-4xl font-bold mb-4"></h2>
+      <p id="modal-text" class="text-lg mb-6 text-slate-300"></p>
+      <button id="restart-button" class="btn-primary text-white font-bold text-xl py-3 px-12 rounded-full shadow-lg uppercase tracking-wider">
+        Play Again
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // --- Inisialisasi Canvas & Konteks ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 800;
+    canvas.height = 600;
+
+    // --- Elemen UI ---
+    const vaultHealthDisplay = document.getElementById('vaultHealth');
+    const vaultHealthBar = document.getElementById('vaultHealthBar');
+    const creditsDisplay = document.getElementById('credits');
+    const waveDisplay = document.getElementById('wave');
+    const startWaveBtn = document.getElementById('startWaveBtn');
+    const towerCards = document.querySelectorAll('.tower-card');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalText = document.getElementById('modal-text');
+    const restartButton = document.getElementById('restart-button');
+
+    // --- ASET GAMBAR ---
+    const towerImages = {}; // Objek untuk menyimpan gambar yang sudah dimuat
+    const imageSources = {
+        tower1: 'images/Tanssi Logo & Icon _Mesa de trabajo 1 copia 7.png',
+        tower2: 'images/wirexxx.png'
+    };
+
+    // Fungsi untuk memuat semua gambar sebelum game dimulai
+    function preloadImages(callback) {
+        let loadedImages = 0;
+        const numImages = Object.keys(imageSources).length;
+        if (numImages === 0) {
+            callback();
+            return;
+        }
+        for (const key in imageSources) {
+            towerImages[key] = new Image();
+            towerImages[key].src = imageSources[key];
+            towerImages[key].onload = () => {
+                loadedImages++;
+                if (loadedImages === numImages) {
+                    callback(); // Jalankan game setelah semua gambar dimuat
+                }
+            };
+            towerImages[key].onerror = () => {
+                console.error(`Gagal memuat gambar: ${imageSources[key]}`);
+                // Jika gambar gagal dimuat, kita tetap lanjut agar game tidak macet
+                loadedImages++;
+                if (loadedImages === numImages) {
+                    callback();
+                }
+            };
+        }
+    }
+
+    // --- Konfigurasi Game ---
+    const TILE_SIZE = 50;
+    const PATH = [
+        {x: 0, y: 5}, {x: 3, y: 5}, {x: 3, y: 2}, {x: 8, y: 2}, {x: 8, y: 8},
+        {x: 5, y: 8}, {x: 5, y: 10}, {x: 13, y: 10}, {x: 13, y: 5}, {x: 16, y: 5}
+    ];
+    const TOWER_SPECS = {
+        1: { cost: 50, range: 125, damage: 15, fireRate: 60, color: '#34d399' },
+        2: { cost: 75, range: 100, damage: 5, fireRate: 40, color: '#60a5fa', slow: 0.5 }
+    };
+    const WAVES = [
+        { count: 5, health: 50, speed: 1 },
+        { count: 8, health: 60, speed: 1.2 },
+        { count: 10, health: 75, speed: 1.2 },
+        { count: 5, health: 200, speed: 0.8 }, // Mini-boss
+        { count: 15, health: 80, speed: 1.5 },
+        { count: 20, health: 100, speed: 1.5 },
+        { count: 10, health: 250, speed: 1.0 }, // Boss
+    ];
+
+    // --- State Game ---
+    let vaultHealth, credits, currentWave, selectedTower, gameRunning;
+    let towers = [], enemies = [], projectiles = [];
+    let frame = 0;
+
+    // --- Kelas Game ---
+    class Tower {
+        constructor(x, y, type) {
+            this.x = x;
+            this.y = y;
+            this.type = type;
+            this.spec = TOWER_SPECS[type];
+            this.target = null;
+            this.fireCooldown = 0;
+            this.buildProgress = 0;
+            this.image = towerImages['tower' + type]; // Ambil gambar yang sudah dimuat
+        }
+
+        draw() {
+            const size = TILE_SIZE * 0.9; // Ukuran tower
+            const drawX = this.x - size / 2;
+            const drawY = this.y - size / 2;
+
+            if (this.buildProgress < 1) {
+                // Animasi pembangunan oleh "Tanssi Drone"
+                this.buildProgress += 0.02;
+                ctx.save();
+                ctx.globalAlpha = this.buildProgress; // Efek fade-in
+                if (this.image) {
+                    ctx.drawImage(this.image, drawX, drawY, size, size);
+                }
+                ctx.restore();
+            } else {
+                // Gambar tower yang sudah selesai dibangun
+                if (this.image) {
+                    ctx.drawImage(this.image, drawX, drawY, size, size);
+                } else {
+                    // Fallback jika gambar gagal dimuat
+                    ctx.fillStyle = this.spec.color;
+                    ctx.fillRect(drawX, drawY, size, size);
+                }
+            }
+        }
+
+        update() {
+            if (this.buildProgress < 1) return;
+
+            if (this.fireCooldown > 0) this.fireCooldown--;
+
+            if (!this.target || this.target.health <= 0 || getDistance(this, this.target) > this.spec.range) {
+                this.findTarget();
+            }
+
+            if (this.target && this.fireCooldown <= 0) {
+                this.shoot();
+                this.fireCooldown = this.spec.fireRate;
+            }
+        }
+
+        findTarget() {
+            let closestEnemy = null;
+            let minDistance = this.spec.range;
+            for (const enemy of enemies) {
+                const distance = getDistance(this, enemy);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestEnemy = enemy;
+                }
+            }
+            this.target = closestEnemy;
+        }
+
+        shoot() {
+            projectiles.push(new Projectile(this.x, this.y, this.target, this.spec));
+        }
+    }
+
+    class Enemy {
+        constructor(config) {
+            this.x = PATH[0].x * TILE_SIZE + TILE_SIZE / 2;
+            this.y = PATH[0].y * TILE_SIZE + TILE_SIZE / 2;
+            this.pathIndex = 0;
+            this.maxHealth = config.health;
+            this.health = config.health;
+            this.speed = config.speed;
+            this.originalSpeed = config.speed;
+            this.slowTimer = 0;
+        }
+
+        draw() {
+            ctx.fillStyle = this.slowTimer > 0 ? '#60a5fa' : '#ef4444';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(this.x - 15, this.y - 25, 30, 5);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(this.x - 15, this.y - 25, 30 * (this.health / this.maxHealth), 5);
+        }
+
+        update() {
+            if(this.slowTimer > 0) this.slowTimer--;
+            else this.speed = this.originalSpeed;
+
+            if (this.pathIndex >= PATH.length - 1) {
+                vaultHealth -= 10;
+                this.health = 0;
+                return;
+            }
+
+            const target = {
+                x: PATH[this.pathIndex + 1].x * TILE_SIZE + TILE_SIZE / 2,
+                y: PATH[this.pathIndex + 1].y * TILE_SIZE + TILE_SIZE / 2
+            };
+
+            const dx = target.x - this.x;
+            const dy = target.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < this.speed) {
+                this.pathIndex++;
+            } else {
+                this.x += (dx / distance) * this.speed;
+                this.y += (dy / distance) * this.speed;
+            }
+        }
+    }
+
+    class Projectile {
+        constructor(x, y, target, spec) {
+            this.x = x;
+            this.y = y;
+            this.target = target;
+            this.spec = spec;
+            this.speed = 5;
+        }
+
+        draw() {
+            ctx.fillStyle = this.spec.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        update() {
+            if (!this.target || this.target.health <= 0) {
+                this.destroy = true;
+                return;
+            }
+            const dx = this.target.x - this.x;
+            const dy = this.target.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < this.speed) {
+                this.target.health -= this.spec.damage;
+                if (this.spec.slow) {
+                    this.target.speed = this.target.originalSpeed * (1 - this.spec.slow);
+                    this.target.slowTimer = 60;
+                }
+                if (this.target.health <= 0) {
+                    credits += 50;
+                }
+                this.destroy = true;
+            } else {
+                this.x += (dx / distance) * this.speed;
+                this.y += (dy / distance) * this.speed;
+            }
+        }
+    }
+
+    // --- Fungsi Helper & Game Logic ---
+    function getDistance(obj1, obj2) {
+        const dx = obj1.x - obj2.x;
+        const dy = obj1.y - obj2.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function drawGrid() {
+        ctx.strokeStyle = '#2d3748';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= canvas.width / TILE_SIZE; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * TILE_SIZE, 0);
+            ctx.lineTo(i * TILE_SIZE, canvas.height);
+            ctx.stroke();
+        }
+        for (let i = 0; i <= canvas.height / TILE_SIZE; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, i * TILE_SIZE);
+            ctx.lineTo(canvas.width, i * TILE_SIZE);
+            ctx.stroke();
+        }
+    }
+
+    function drawPath() {
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = TILE_SIZE;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(PATH[0].x * TILE_SIZE, PATH[0].y * TILE_SIZE + TILE_SIZE / 2);
+        for (let i = 1; i < PATH.length; i++) {
+            ctx.lineTo(PATH[i].x * TILE_SIZE + TILE_SIZE / 2, PATH[i].y * TILE_SIZE + TILE_SIZE / 2);
+        }
+        ctx.stroke();
+    }
+
+    function spawnWave() {
+        if (currentWave >= WAVES.length) return;
+        const waveConfig = WAVES[currentWave];
+        for (let i = 0; i < waveConfig.count; i++) {
+            setTimeout(() => enemies.push(new Enemy(waveConfig)), i * 500);
+        }
+        startWaveBtn.disabled = true;
+    }
+
+    function updateUI() {
+        vaultHealthDisplay.textContent = Math.max(0, vaultHealth);
+        vaultHealthBar.style.width = `${Math.max(0, vaultHealth)}%`;
+        if (vaultHealth < 30) vaultHealthBar.style.backgroundColor = '#ef4444';
+        else if (vaultHealth < 60) vaultHealthBar.style.backgroundColor = '#f59e0b';
+        else vaultHealthBar.style.backgroundColor = '#22c55e';
+        
+        creditsDisplay.textContent = credits;
+        waveDisplay.textContent = currentWave + 1 > WAVES.length ? 'MAX' : currentWave + 1;
+
+        towerCards.forEach(card => {
+            const type = card.id.split('-')[1];
+            if (credits < TOWER_SPECS[type].cost) {
+                card.classList.add('disabled');
+            } else {
+                card.classList.remove('disabled');
+            }
+        });
+    }
+
+    function init() {
+        vaultHealth = 100;
+        credits = 100;
+        currentWave = -1;
+        selectedTower = 0;
+        gameRunning = true;
+        towers = [];
+        enemies = [];
+        projectiles = [];
+        frame = 0;
+        startWaveBtn.disabled = false;
+        modal.classList.add('opacity-0', 'invisible');
+        gameLoop();
+    }
+    
+    function gameOver(isVictory) {
+        gameRunning = false;
+        if(isVictory) {
+            modalTitle.textContent = "Kemenangan!";
+            modalTitle.className = "font-orbitron text-4xl font-bold mb-4 text-cyan-400";
+            modalText.textContent = "Anda berhasil mempertahankan Brankas Wirex dari semua ancaman!";
+        } else {
+            modalTitle.textContent = "Game Over";
+            modalTitle.className = "font-orbitron text-4xl font-bold mb-4 text-red-500";
+            modalText.textContent = "Brankas telah dibobol! Jaringan dalam bahaya.";
+        }
+        modal.classList.remove('opacity-0', 'invisible');
+    }
+
+    // --- Game Loop Utama ---
+    function gameLoop() {
+        if (!gameRunning) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawGrid();
+        drawPath();
+
+        towers.forEach(t => { t.draw(); t.update(); });
+        projectiles.forEach(p => { p.draw(); p.update(); });
+        enemies.forEach(e => { e.draw(); e.update(); });
+        
+        enemies = enemies.filter(e => e.health > 0);
+        projectiles = projectiles.filter(p => !p.destroy);
+
+        if (vaultHealth <= 0) {
+            gameOver(false);
+        }
+        if (currentWave >= WAVES.length - 1 && enemies.length === 0) {
+            gameOver(true);
+        }
+
+        if (enemies.length === 0 && startWaveBtn.disabled) {
+            startWaveBtn.disabled = false;
+        }
+
+        updateUI();
+        frame++;
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Event Listeners ---
+    startWaveBtn.addEventListener('click', () => {
+        if(currentWave < WAVES.length - 1) {
+            currentWave++;
+            spawnWave();
+        }
+    });
+
+    towerCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const type = parseInt(card.id.split('-')[1]);
+            if (credits >= TOWER_SPECS[type].cost) {
+                selectedTower = type;
+                towerCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+            }
+        });
+    });
+
+    canvas.addEventListener('click', (e) => {
+        if (selectedTower === 0) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) / TILE_SIZE);
+        const y = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+        
+        const isOccupied = towers.some(t => Math.floor(t.x / TILE_SIZE) === x && Math.floor(t.y / TILE_SIZE) === y);
+        const isOnPath = PATH.some(p => p.x === x && p.y === y);
+
+        if (!isOccupied && !isOnPath) {
+            const cost = TOWER_SPECS[selectedTower].cost;
+            if (credits >= cost) {
+                credits -= cost;
+                towers.push(new Tower(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, selectedTower));
+                selectedTower = 0;
+                towerCards.forEach(c => c.classList.remove('selected'));
+            }
+        }
+    });
+    
+    restartButton.addEventListener('click', init);
+
+    // --- Mulai Game ---
+    preloadImages(init);
+</script>
+
+</body>
+</html>
